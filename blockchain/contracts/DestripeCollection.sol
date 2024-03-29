@@ -4,8 +4,9 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "./INFTCollection.sol";
 
-contract DestripeCollection is ERC721, Ownable {
+contract DestripeCollection is INFTCollection, ERC721, Ownable {
     uint256 private _nextTokenId;
     address public authorizedContract;
     string public baseURI = "http://localhost:3000/nft/";
@@ -16,7 +17,7 @@ contract DestripeCollection is ERC721, Ownable {
 
     function setAuthorizedContract(
         address newAuthorizedContract
-    ) public onlyOwner {
+    ) external onlyOwner {
         authorizedContract = newAuthorizedContract;
     }
 
@@ -49,7 +50,7 @@ contract DestripeCollection is ERC721, Ownable {
     function setApprovalForAll(
         address operator,
         bool approval
-    ) public virtual override(ERC721) onlyOwner {
+    ) public virtual override(IERC721, ERC721) onlyOwner {
         _setApprovalForAll(operator, authorizedContract, approved);
     }
 
