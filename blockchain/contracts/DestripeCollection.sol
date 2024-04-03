@@ -11,9 +11,7 @@ contract DestripeCollection is INFTCollection, ERC721, Ownable {
     address public authorizedContract;
     string public baseURI = "http://localhost:3000/nft/";
 
-    constructor(
-        address initialOwner
-    ) ERC721("DestripeCollection", "DSP") Ownable(initialOwner) {}
+    constructor() ERC721("DestripeCollection", "DSP") Ownable(msg.sender) {}
 
     function setAuthorizedContract(
         address newAuthorizedContract
@@ -25,7 +23,7 @@ contract DestripeCollection is INFTCollection, ERC721, Ownable {
         baseURI = newAuthorizedURI;
     }
 
-    function _baseURI() internal pure override returns (string memory) {
+    function _baseURI() internal view override returns (string memory) {
         return baseURI;
     }
 
@@ -43,7 +41,7 @@ contract DestripeCollection is INFTCollection, ERC721, Ownable {
 
     function tokenURI(
         uint tokenId
-    ) external view override(ERC721) returns (string memory) {
+    ) public view override(ERC721) returns (string memory) {
         return string.concat(_baseURI(), Strings.toString(tokenId), ".json");
     }
 
@@ -51,7 +49,7 @@ contract DestripeCollection is INFTCollection, ERC721, Ownable {
         address operator,
         bool approval
     ) public virtual override(IERC721, ERC721) onlyOwner {
-        _setApprovalForAll(operator, authorizedContract, approved);
+        _setApprovalForAll(operator, authorizedContract, approval);
     }
 
     function mint(address customer) external returns (uint256) {

@@ -19,14 +19,14 @@ contract Destripe is Ownable {
     }
 
     mapping(address => Customer) public payments; // wallet address => payment infos
-    address[] public customers // list of customers addresses
+    address[] public customers; // list of customers addresses
 
-    event Granted(address indexed customer, uint date, uint tokenId);
-    event Revoked(address indexed customer, uint date, uint tokenId);
-    event Removed(address indexed customer, uint date, uint tokenId);
-    event Paid(address indexed customer, uint date, uint amount);
+    event Granted(address indexed customer, uint tokenId, uint date);
+    event Revoked(address indexed customer, uint tokenId, uint date);
+    event Removed(address indexed customer, uint tokenId, uint date);
+    event Paid(address indexed customer, uint amount, uint date);
 
-    constructor(address tokenAddress, address nftAddress) {
+    constructor(address tokenAddress, address nftAddress) Ownable(msg.sender) {
         acceptedToken = IERC20(tokenAddress);
         nftCollection = INFTCollection(nftAddress);
     }
@@ -40,8 +40,75 @@ contract Destripe is Ownable {
         nftCollection.burn(tokenId); // deletes NFT and makes user unable to access
 
         delete customers[payments[customer].index];
-        delete payments[customer]; 
+        delete payments[customer];
 
-        emit Removed(customer, block.timestamp, tokenId);
+        emit Removed(customer, tokenId, block.timestamp);
+    }
+
+    function pay(address customer) external onlyOwner {
+        bool thirtyDaysHavePassed = payments[customer].nextPayment <=
+            block.timestamp;
+        bool isFirstPayment = payments[customer].nextPayment == 0;
+        bool hasAmount = acceptedToken.balanceOf(customer) >= monthlyAmount;
+        bool hasAllowance = acceptedToken.allowance(customer, address(this)) >=
+            monthlyAmount;
+
+        bool haveToPay = thirtyDaysHavePassed || isFirstPayment;
+        bool isAbleToPay = hasAmount && hasAllowance;
+
+        if (haveToPay && !isAbleToPay) {
+            if (!isFirstPayment) {
+                nftCollection.safeTransferFrom(
+                    customer,
+                    address(this),
+                    payments[customer].tokenId
+                );
+                emit Revoked(
+                    customer,
+                    payments[customer].tokenId,
+                    block.timestamp
+                );
+            } else {
+                revert("You do not have enough amount or allowance to pay");
+            }
+        }
+
+        if (isFirstPayment) {
+            nftCollection.mint(customer);
+            payments[customer].tokenId = nftCollection.getLastTokenId();
+            payments[customer].index = customers.length;
+            customers.push(customer);
+
+            emit Granted(customer, payments[customer].tokenId, block.timestamp);
+        }
+
+        if (haveToPay) {
+            acceptedToken.transferFrom(customer, address(this), monthlyAmount);
+            payments[customer].nextPayment =
+                block.timestamp +
+                thirtyDaysInSeconds;
+
+            emit Paid(customer, monthlyAmount, block.timestamp);
+
+            address currentNftOwner = nftCollection.ownerOf(
+                payments[customer].tokenId
+            );
+
+            if (currentNftOwner != customer) {
+                nftCollection.safeTransferFrom(
+                    address(this),
+                    customer,
+                    payments[customer].tokenId
+                );
+                emit Granted(
+                    customer,
+                    payments[customer].tokenId,
+                    block.timestamp
+                );
+            }
+
+            payments[customer].nextPayment += thirtyDaysInSeconds;
+            emit Paid(customer, monthlyAmount, block.timestamp);
+        }
     }
 }

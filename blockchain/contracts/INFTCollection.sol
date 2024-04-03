@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-interface INFCollection is IERC721 {
+interface INFTCollection is IERC721 {
     function setAuthorizedContract(address newAuthorizedContract) external;
 
     function getLastTokenId() external view returns (uint256);
