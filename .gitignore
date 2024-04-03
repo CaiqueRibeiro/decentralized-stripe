@@ -4,6 +4,8 @@
 # Hardhat files
 blockchain/cache
 blockchain/artifacts
+blockchain/cache
+blockchain/ignition/deployments
 
 # TypeChain files
 blockchain/typechain
@@ -12,3 +14,5 @@ blockchain/typechain-types
 # solidity-coverage files
 blockchain/coverage
 blockchain/coverage.json
+
+backend/abis/*
