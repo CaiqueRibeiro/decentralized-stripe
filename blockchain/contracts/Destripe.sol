@@ -32,6 +32,10 @@ contract Destripe is ERC721Holder, Ownable {
         nftCollection = INFTCollection(nftAddress);
     }
 
+    function getCustomers() external view returns (address[] memory) {
+        return customers;
+    }
+
     function setMonthlyAmount(uint newAmount) external onlyOwner {
         monthlyAmount = newAmount;
     }
