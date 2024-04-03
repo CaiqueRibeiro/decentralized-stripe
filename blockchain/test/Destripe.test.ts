@@ -32,10 +32,63 @@ describe("Destripe", function () {
   }
 
   it("Should do first payment", async function () {
-    const { destripe, destripeCoin, destripeCollection, owner, otherAccount } = await loadFixture(deployFixture);
+    const { destripe, destripeCoin, otherAccount } = await loadFixture(deployFixture);
 
     const instance = destripeCoin.connect(otherAccount);
     await instance.approve(destripe.getAddress(), ethers.parseEther("0.01"));
+    await expect(destripe.pay(otherAccount.getAddress())).to.emit(destripe, "Granted");
+  });
+
+  it("Should NOT do first payment", async function () {
+    const { destripe, destripeCoin, otherAccount } = await loadFixture(deployFixture);
+
+    const instance = destripeCoin.connect(otherAccount);
+    await expect(destripe.pay(otherAccount.getAddress())).to.be.revertedWith("You do not have enough amount or allowance to pay");
+  });
+
+  it("Should do second payment", async function () {
+    const { destripe, destripeCoin, otherAccount } = await loadFixture(deployFixture);
+
+    const instance = destripeCoin.connect(otherAccount);
+    await instance.approve(destripe.getAddress(), ethers.parseEther("0.01"));
+
+    await destripe.pay(otherAccount.getAddress());
+
+    await time.increase(31 * 24 * 60 * 60); // advances blockchain in 31 days
+
+    await expect(destripe.pay(otherAccount.getAddress())).to.emit(destripe, "Paid");
+  });
+
+  it("Should NOT do second payment", async function () {
+    const { destripe, destripeCoin, otherAccount } = await loadFixture(deployFixture);
+
+    const instance = destripeCoin.connect(otherAccount);
+    await instance.approve(destripe.getAddress(), ethers.parseEther("0.01"));
+
+    await destripe.pay(otherAccount.getAddress());
+
+    await time.increase(31 * 24 * 60 * 60); // advances blockchain in 31 days
+
+    await instance.approve(destripe.getAddress(), ethers.parseEther("0.000001")); // small approval to not be allowed to pay
+
+    await expect(destripe.pay(otherAccount.getAddress())).to.emit(destripe, "Revoked");
+  });
+
+  it("Should do second payment after revoke", async function () {
+    const { destripe, destripeCoin, otherAccount } = await loadFixture(deployFixture);
+
+    const instance = destripeCoin.connect(otherAccount);
+    await instance.approve(destripe.getAddress(), ethers.parseEther("0.01"));
+
+    await destripe.pay(otherAccount.getAddress());
+
+    await time.increase(31 * 24 * 60 * 60); // advances blockchain in 31 days
+
+    await instance.approve(destripe.getAddress(), ethers.parseEther("0.000001")); // small approval to not be allowed to pay
+
+    await destripe.pay(otherAccount.getAddress()); // unable to pay, so access is revoked
+
+    await instance.approve(destripe.getAddress(), ethers.parseEther("1"));
     await expect(destripe.pay(otherAccount.getAddress())).to.emit(destripe, "Granted");
   });
 });

@@ -3,9 +3,10 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "./INFTCollection.sol";
 
-contract Destripe is Ownable {
+contract Destripe is ERC721Holder, Ownable {
     IERC20 public acceptedToken;
     INFTCollection public nftCollection;
 
@@ -62,12 +63,13 @@ contract Destripe is Ownable {
                     customer,
                     address(this),
                     payments[customer].tokenId
-                );
+                ); // Destripe contract has to implement ERC721Receiver to receive NFTs
                 emit Revoked(
                     customer,
                     payments[customer].tokenId,
                     block.timestamp
                 );
+                return;
             } else {
                 revert("You do not have enough amount or allowance to pay");
             }
@@ -84,17 +86,25 @@ contract Destripe is Ownable {
 
         if (haveToPay) {
             acceptedToken.transferFrom(customer, address(this), monthlyAmount);
-            payments[customer].nextPayment =
-                block.timestamp +
-                thirtyDaysInSeconds;
-
-            emit Paid(customer, monthlyAmount, block.timestamp);
 
             address currentNftOwner = nftCollection.ownerOf(
                 payments[customer].tokenId
             );
 
-            if (currentNftOwner != customer) {
+            if (isFirstPayment) {
+                payments[customer].nextPayment =
+                    block.timestamp +
+                    thirtyDaysInSeconds;
+            } else {
+                payments[customer].nextPayment += thirtyDaysInSeconds;
+            }
+
+            emit Paid(customer, monthlyAmount, block.timestamp);
+
+            bool haveJustOneLatePayment = payments[customer].nextPayment >
+                block.timestamp; // if the only late payment is the current one, the nextPayment will be in the future
+
+            if (haveJustOneLatePayment && currentNftOwner != customer) {
                 nftCollection.safeTransferFrom(
                     address(this),
                     customer,
@@ -106,9 +116,6 @@ contract Destripe is Ownable {
                     block.timestamp
                 );
             }
-
-            payments[customer].nextPayment += thirtyDaysInSeconds;
-            emit Paid(customer, monthlyAmount, block.timestamp);
         }
     }
 }
