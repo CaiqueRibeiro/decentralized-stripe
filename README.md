@@ -1,4 +1,4 @@
-# Destripe - Simple DeFi contracts
+# 💸 Destripe - Simple DeFi contracts
 
 A collection of Smart Contracts to work as a DeFi that works together with a Node.js Web2 backend that executes periodic charges to DeFi customers.
 
@@ -26,3 +26,6 @@ The main protocol, that uses the other to to manage customers and payments.
 | 🐟   | **Sepolia** Testnet blockchain to deploy smartcontracts in real world. |
 | 👨🏻‍💻   | **Node.js** Most known javascript engine for backend applications |
 | 💠   | **Typescript** Superset of Javascript to improve software design |
+
+# Project Design
+![destripe-workflow](https://github.com/CaiqueRibeiro/descentrilized-stripe/assets/23503499/655b8827-c0b8-4981-9ecd-365c0d53f23d)
