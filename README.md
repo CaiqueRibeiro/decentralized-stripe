@@ -28,4 +28,4 @@ The main protocol, that uses the other to to manage customers and payments.
 | 💠   | **Typescript** Superset of Javascript to improve software design |
 
 # Project Design
-![destripe-workflow](https://github.com/CaiqueRibeiro/descentrilized-stripe/assets/23503499/655b8827-c0b8-4981-9ecd-365c0d53f23d)
+![destripe-workflow](https://github.com/CaiqueRibeiro/descentrilized-stripe/assets/23503499/75aadcda-ee7a-45b6-8158-bf1060a0905e)
