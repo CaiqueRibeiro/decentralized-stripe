@@ -13,7 +13,7 @@ The ERC721 NFT Token used as a login in system. DeFi can grant or revoke it.
 [See it in Etherscan](https://sepolia.etherscan.io/address/0xd1852e96ac02DDE570536E0313824f01Bdf4F615)
 
 ### Destripe
-The main protocol, that uses the other to to manage customers and payments.
+The main protocol, that uses the other ones to manage customers and payments.
 [See it in Etherscan](https://sepolia.etherscan.io/address/0x6BCcd0FbC10191897F5364CcE1Cac39339C111CC)
 
 ## Specs
