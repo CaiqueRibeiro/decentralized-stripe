@@ -1,23 +1,11 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { JsonRpcProvider, Contract, Wallet } from 'ethers';
-import artifacts from '../abis/Destripe.json';
 
 import app from './app';
-
-function getContract(): Contract {
-    const provider = new JsonRpcProvider(process.env.INFURA_URL);
-    return new Contract(`${process.env.DESTRIPE_CONTRACT}`, artifacts.abi, provider);
-}
-
-function getSigner(): Contract {
-    const provider = new JsonRpcProvider(process.env.INFURA_URL);
-    const signer = new Wallet(`${process.env.PRIVATE_KEY}`, provider);
-    return new Contract(`${process.env.DESTRIPE_CONTRACT}`, artifacts.abi, signer);
-}
+import { getDefiContract, getSigner } from './services/web3';
 
 function getCostumers(): Promise<string[]> {
-    return getContract().getCustomers();
+    return getDefiContract().getCustomers();
 }
 
 type Customer = {
@@ -27,7 +15,7 @@ type Customer = {
 }
 
 function getCustomerInfo(customer: string): Promise<Customer> {
-    return getContract().payments(customer) as Promise<Customer>;
+    return getDefiContract().payments(customer) as Promise<Customer>;
 }
 
 async function pay(customer: string): Promise<string> {
