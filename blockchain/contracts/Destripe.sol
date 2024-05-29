@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "./INFTCollection.sol";
 
 contract Destripe is ERC721Holder, Ownable {
+    error Destripe__NotEnoughAmountOrAllowance(string message);
+
     IERC20 public acceptedToken;
     INFTCollection public nftCollection;
 
@@ -63,6 +65,7 @@ contract Destripe is ERC721Holder, Ownable {
 
         if (haveToPay && !isAbleToPay) {
             if (!isFirstPayment) {
+                // get back the nft to the destripe contract
                 nftCollection.safeTransferFrom(
                     customer,
                     address(this),
@@ -75,11 +78,14 @@ contract Destripe is ERC721Holder, Ownable {
                 );
                 return;
             } else {
-                revert("You do not have enough amount or allowance to pay");
+                revert Destripe__NotEnoughAmountOrAllowance(
+                    "You do not have enough amount or allowance to pay"
+                );
             }
         }
 
         if (isFirstPayment) {
+            // if it is the first payment, mint a new NFT to the customer
             nftCollection.mint(customer);
             payments[customer].tokenId = nftCollection.getLastTokenId();
             payments[customer].index = customers.length;
